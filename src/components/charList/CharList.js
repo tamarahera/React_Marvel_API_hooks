@@ -3,33 +3,26 @@ import PropTypes from 'prop-types';
 
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import './charList.scss';
 
 const CharList = (props) => {
 
     const [charList, setCharList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
     const [newItemLoading, setNewItemLoading] = useState(false);
     const [offsetCharacters, setOffsetCharacters] = useState(210);
     const [charEnded, setCharEnded] = useState(false);
     
-    const marvelService = new MarvelService();
+    const {loading, error, getAllCharacters} = useMarvelService();
 
     useEffect(() => {
-        onRequest(); 
+        onRequest(offsetCharacters, true); //отримуємо персонажів починаючи з 210 і викл ф. onCharListLoaded
     }, []) // пустий масив - симуляція componentDidMount()
 
-    const onRequest = (offsetCharacters) => {
-        onCharListLoading();
-        marvelService.getAllCharacters(offsetCharacters)
+    const onRequest = (offsetCharacters, initial) => {
+        initial ? setNewItemLoading(false) : setNewItemLoading(true); //якщо true ставимо false і навпаки, dissabled button
+        getAllCharacters(offsetCharacters)
             .then(onCharListLoaded)
-            .catch(onError)
-    }
-
-    const onCharListLoading = () => {
-        setNewItemLoading(true);
     }
     
     const onCharListLoaded = (newCharList) => {
@@ -39,15 +32,10 @@ const CharList = (props) => {
         }
 
         setCharList(charList => [...charList, ...newCharList]); //маємо дочекатися завантаж минулого стейту
-        setLoading(loading => false);
-        setNewItemLoading(setNewItemLoading => false);
-        setOffsetCharacters(offsetCharacters => offsetCharacters + 9);
-        setCharEnded(charEnded => ended);
-    }
-
-    const onError = () => {
-        setError(true); //тут не обов'язково чекати мин стейт
-        setLoading(false);
+        //перший запус []+[newArr], другий запуск [newArr]+[newArr+9]
+        setNewItemLoading(false); //enabled button
+        setOffsetCharacters(offsetCharacters => offsetCharacters + 9); // змінюємо число offset 
+        setCharEnded(ended); // виключаємо button, якщо завантаж дійшло до кінця
     }
 
 /*     const itemRefs = useRef([]);
@@ -63,7 +51,7 @@ const CharList = (props) => {
         const items =  arr.map((item, i) => {
             let imgStyle = {'objectFit' : 'cover'};
             if (item.thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
-                imgStyle = {'objectFit' : 'unset'};
+                imgStyle = {'objectFit' : 'contain'};
             }
             
             return (
@@ -76,7 +64,7 @@ const CharList = (props) => {
                         props.onCharSelectedProp(item.id);
                         item[i].focus();
                     }}
-                    onFocus={() => this.props.onCharSelectedProp(item.id)}>
+                    onFocus={() => props.onCharSelectedProp(item.id)}>
                         <img src={item.thumbnail} alt={item.name} style={imgStyle}/>
                         <div className="char__name">{item.name}</div>
                 </li>
@@ -93,14 +81,13 @@ const CharList = (props) => {
     const items = renderItems(charList);
 
     const errorMessage = error ? <ErrorMessage/> : null;
-    const spinner = loading ? <Spinner/> : null;
-    const content = !(loading || error) ? items : null;
+    const spinner = loading && !newItemLoading ? <Spinner/> : null; // якщо це не завантаж і не завантаж нових персонажів
 
     return (
         <div className="char__list">
             {errorMessage}
             {spinner}
-            {content}
+            {items}
             <button className="button button__main button__long"
                     disabled={newItemLoading}
                     style={{'display': charEnded ? 'none' : 'block'}}
