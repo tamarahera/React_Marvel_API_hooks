@@ -11,7 +11,7 @@ export const useHttp = () => {
         try {
             const response = await fetch(url, {method, body, headers}); //promise
 
-            if (response.ok) {
+            if (!response.ok) {
                 throw new Error(`Could not fetch ${url}, status: ${response.status}`);
             }
 
@@ -19,7 +19,7 @@ export const useHttp = () => {
             setLoading(false);
             return data;
         } catch(e) {
-            setLoading(true);
+            setLoading(false);
             setError(e.message);
             throw e;
         }
