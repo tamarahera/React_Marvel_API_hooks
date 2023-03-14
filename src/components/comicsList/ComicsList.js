@@ -34,7 +34,6 @@ const ComicsList = () => {
         setnewItemLoading(false);
         setOffset(offset + 8)
         setComicsEnded(ended);
-        console.log(comicsList)
     }
 
     function renderItems(data) {
@@ -49,7 +48,7 @@ const ComicsList = () => {
                     key={i} 
                     className="comics__item">
                     <a href="#">
-                        <img src={item.thumbnail} alt={item.title} className="comics__item-img" style={imgStyle} tabIndex={0}/>
+                        <img src={item.thumbnail} alt={item.title} className="comics__item-img" style={imgStyle}/>
                         <div className="comics__item-name">{item.title}</div>
                         <div className="comics__item-price">{item.price}</div>
                     </a>
